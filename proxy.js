@@ -1,6 +1,6 @@
 var net = require('net'),
 		config = require('./config.js').config,
-		sessions = new (require('./sessions.js'));
+		sessions = new (require('./sessions.js').Sessions);
 
 var server = net.createServer(function(socket) {
 
@@ -8,6 +8,8 @@ var server = net.createServer(function(socket) {
 
 	socket.setEncoding(config.proxy_server.socket_encoding);
 	socket.setMaxListeners(0);
+
+	console.log('Client ' + socket.remoteAddress + ' is connected to proxy server');
 
 	// Отправка данных чат-серверу
 	socket.on('data', function(data){

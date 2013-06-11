@@ -20,48 +20,58 @@ exports.Sessions = function(){
 	};
 
 	// Сессия пользователя
-	var Session = function(){
+	function Session(){
 		this._id = uuid.v4() || 0;
 		this.user_id = null;
 		this.data = [];
 
 		this.client_socket = null;
 		this.server_socket = net.createConnection(config.chat_server.port, config.chat_server.ip);
+		console.log('Connected to chat server');
 
 		var current = this;
 		this.server_socket.on('data', function(data){
+			var packs = data.toString().trim().split('\n');
 
-			var result = JSON.parse(data);
+			if (packs.length > 0 && packs[0] != '<?xml version="1.0"?>')
+				packs.forEach(function(pack){
+					try {
+						var result = JSON.parse(pack.toString());
 
-			// Авторизация
-			if (result['cmd'] == 'usrConnectOk') {
+						// Авторизация
+						if (result['cmd'] && result['cmd'] == 'usrConnectOk') {
 
-				// Проверям наличие разорванных соединений
-				if (current.user_id === null)
-					for (var id in self.sessions) {
-						if (self.sessions.hasOwnProperty(id) && self.sessions[id].user_id == result['sessionId']) {
+							// Проверям наличие разорванных соединений
+							if (current.user_id === null)
+								for (var id in self.sessions) {
+									if (self.sessions.hasOwnProperty(id) && self.sessions[id].user_id == result['sessionId']) {
 
-							var old_session = self.sessions[id];
+										var old_session = self.sessions[id];
 
-							// Отсылаем все утеренные пакеты
-							if (old_session.data.length > 0) {
-								old_session.data.forEach(function(pack){
-									current.client_socket.write(pack);
-								});
-							}
+										// Отсылаем все утеренные пакеты
+										if (old_session.data.length > 0) {
+											old_session.data.forEach(function(pack){
+												current.client_socket.write(pack);
+											});
+										}
 
-							// Восстановливаем утеренное соединение
-							current.server_socket.destroy();
-							current.server_socket = old_session.server_socket;
+										// Восстановливаем утеренное соединение
+										current.server_socket.destroy();
+										current.server_socket = old_session.server_socket;
 
-							// Удаляем старую сессию
-							delete self.sessions[id];
-							break;
+										// Удаляем старую сессию
+										delete self.sessions[id];
+										break;
+									}
+								}
+
+							current.user_id = result['sessionId'];
 						}
+					} catch (e) {
+						console.log('JSON Parse error: ' + e);
+						console.log('JSON Data: ' + pack);
 					}
-
-				current.user_id = result['sessionId'];
-			}
+				});
 
 			if (!current.client_socket.write(data)) current.data.push(data);
 		});
