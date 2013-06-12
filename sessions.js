@@ -15,12 +15,12 @@ exports.Sessions = function(){
 
 	this.delete = function(id){
 		var ping = setInterval(function(){
-			if (self.sessions.hasOwnProperty(id)) self.sessions[id].server_socket.write('{}\0');
+			if (self.sessions.hasOwnProperty(id)) self.sessions[id].server_socket.write('{"cmd":"*ping"}\0');
 		}, 15000); // 15 секунд
 
 		setTimeout(function(){
 			console.log('Session destroy');
-			clearInterval(ping);                                       å
+			clearInterval(ping);
 			if (self.sessions.hasOwnProperty(id)) self.sessions[id].destroy();
 		}, 1800000); // 30 минут
 	};
@@ -37,50 +37,7 @@ exports.Sessions = function(){
 
 		var current = this;
 		this.server_socket.on('data', function(data){
-			var packs = data.toString().trim().split('\n');
-
-			if (packs.length > 0 && packs[0] != '<?xml version="1.0"?>')
-				packs.forEach(function(pack){
-
-					if (typeof(pack) == 'undefined' || pack.trim().length == 0 || pack == '\u0000') return false;
-
-					try {
-						var result = JSON.parse(pack.toString());
-
-						// Авторизация
-						if (result['cmd'] && result['cmd'] == 'usrAuthOk') {
-
-							// Проверям наличие разорванных соединений
-							if (current.user_id === null)
-								for (var id in self.sessions) {
-									if (self.sessions.hasOwnProperty(id) && self.sessions[id].user_id == result['sessionId']) {
-
-										var old_session = self.sessions[id];
-
-										// Отсылаем все утеренные пакеты
-										if (old_session.data.length > 0) {
-											old_session.data.forEach(function(pack){
-												current.client_socket.write(pack);
-											});
-										}
-
-										// Восстановливаем утеренное соединение
-										current.server_socket = old_session.server_socket;
-
-										// Удаляем старую сессию
-										delete self.sessions[id];
-										break;
-									}
-								}
-
-							current.user_id = result['sessionId'];
-						}
-					} catch (e) {
-						console.log('JSON Parse error: ' + e);
-						console.log('JSON Data: ' + pack);
-					}
-				});
-
+			console.log(data.toString());
 			if (!current.client_socket.write(data)) current.data.push(data);
 		});
 
