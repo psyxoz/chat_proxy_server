@@ -14,7 +14,13 @@ exports.Sessions = function(){
 	};
 
 	this.delete = function(id){
+		var ping = setInterval(function(){
+			if (self.sessions.hasOwnProperty(id)) self.sessions[id].server_socket.write('{}\0');
+		}, 15000); // 15 секунд
+
 		setTimeout(function(){
+			console.log('Session destroy');
+			clearInterval(ping);                                       å
 			if (self.sessions.hasOwnProperty(id)) self.sessions[id].destroy();
 		}, 1800000); // 30 минут
 	};
@@ -35,11 +41,14 @@ exports.Sessions = function(){
 
 			if (packs.length > 0 && packs[0] != '<?xml version="1.0"?>')
 				packs.forEach(function(pack){
+
+					if (typeof(pack) == 'undefined' || pack.trim().length == 0 || pack == '\u0000') return false;
+
 					try {
 						var result = JSON.parse(pack.toString());
 
 						// Авторизация
-						if (result['cmd'] && result['cmd'] == 'usrConnectOk') {
+						if (result['cmd'] && result['cmd'] == 'usrAuthOk') {
 
 							// Проверям наличие разорванных соединений
 							if (current.user_id === null)
@@ -56,7 +65,6 @@ exports.Sessions = function(){
 										}
 
 										// Восстановливаем утеренное соединение
-										current.server_socket.destroy();
 										current.server_socket = old_session.server_socket;
 
 										// Удаляем старую сессию
