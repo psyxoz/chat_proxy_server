@@ -49,7 +49,10 @@ exports.Sessions = function(){
 
 		this.cancel_destruction = function(){
 			clearInterval(current.ping_interval);
+			current.ping_interval = null;
+
 			clearTimeout(current.destruction_timeout);
+			current.destruction_timeout = null;
 		}
 	};
 };
