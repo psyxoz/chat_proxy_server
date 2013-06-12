@@ -13,37 +13,43 @@ exports.Sessions = function(){
 		return self.sessions[session._id];
 	};
 
-	this.delete = function(id){
-		var ping = setInterval(function(){
-			if (self.sessions.hasOwnProperty(id)) self.sessions[id].server_socket.write('{"cmd":"*ping"}\0');
-		}, 15000); // 15 секунд
-
-		setTimeout(function(){
-			console.log('Session destroy');
-			clearInterval(ping);
-			if (self.sessions.hasOwnProperty(id)) self.sessions[id].destroy();
-		}, 1800000); // 30 минут
-	};
-
 	// Сессия пользователя
 	function Session(){
 		this._id = uuid.v4() || 0;
 		this.user_id = null;
 		this.data = [];
 
+		this.ping_interval = null;
+		this.destruction_timeout = null;
+
 		this.client_socket = null;
 		this.server_socket = net.createConnection(config.chat_server.port, config.chat_server.ip);
-		console.log('Connected to chat server');
 
 		var current = this;
+
 		this.server_socket.on('data', function(data){
 			console.log(data.toString());
 			if (!current.client_socket.write(data)) current.data.push(data);
 		});
 
 		this.destroy = function(){
-			if (current.server_socket) current.server_socket.destroy();
-			delete self.sessions[current._id];
+			if (current.ping_interval !== null && current.destruction_timeout !== null)
+				return false;
+
+			current.ping_interval = setInterval(function(){
+				current.server_socket.write('{"cmd":"*ping"}\0');
+			}, 15000); // 15 секунд
+
+			current.destruction_timeout = setTimeout(function(){
+				clearInterval(current.ping_interval);
+				if (current.server_socket) current.server_socket.destroy();
+				delete self.sessions[current._id];
+			}, 1800000); // 30 минут
 		};
+
+		this.cancel_destruction = function(){
+			clearInterval(current.ping_interval);
+			clearTimeout(current.destruction_timeout);
+		}
 	};
 };
