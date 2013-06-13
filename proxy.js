@@ -5,15 +5,12 @@ var net = require('net'),
 var server = net.createServer(function(socket) {
 
 	var session = sessions.new(socket);
-	console.log(Object.keys(sessions.sessions).length);
 
 	socket.setEncoding(config.proxy_server.socket_encoding);
 	socket.setMaxListeners(0);
 
 	// Отправка данных чат-серверу
 	socket.on('data', function(data){
-
-		console.log(data.toString());
 
 		var packs = data.toString().trim().replace('\u0000', '').split('\n'),
 				can_send = true;
