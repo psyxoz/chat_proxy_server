@@ -28,7 +28,7 @@ var server = net.createServer(function(socket) {
 					var result = JSON.parse(pack.toString());
 
 					// Авторизация
-					if (result['cmd'] && result['cmd'] == '*usrAuth' && result['usrId']) {
+					if (result['cmd'] && (result['cmd'] == '*usrAuth' || result['cmd'] == 'usrAuth') && result['usrId']) {
 
 						// Проверям наличие разорванных соединений
 						if (session.user_id === null)
