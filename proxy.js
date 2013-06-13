@@ -13,10 +13,12 @@ var server = net.createServer(function(socket) {
 	// Отправка данных чат-серверу
 	socket.on('data', function(data){
 
+		console.log(data.toString());
+
 		var packs = data.toString().trim().replace('\u0000', '').split('\n'),
 				can_send = true;
 
-		if (packs.length > 0 && packs[0] != '<?xml version="1.0"?>' && session.user_id === null)
+		if (packs.length > 0 && packs[0] != '<?xml version="1.0"?>' && packs[0] != '<policy-file-request/>' && session.user_id === null)
 			packs.forEach(function(pack){
 
 				if (typeof(pack) == 'undefined' || pack.trim().length == 0 || pack == '\u0000')

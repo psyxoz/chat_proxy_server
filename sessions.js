@@ -28,7 +28,6 @@ exports.Sessions = function(){
 		var current = this;
 
 		this.server_socket.on('data', function(data){
-			console.log(data.toString());
 			if (!current.client_socket.write(data)) current.data.push(data);
 		});
 
