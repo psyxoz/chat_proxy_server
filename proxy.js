@@ -32,23 +32,26 @@ var server = net.createServer(function(socket) {
 							for (var id in sessions.sessions) {
 								if (sessions.sessions.hasOwnProperty(id) && sessions.sessions[id].user_id == result['usrId']) {
 
-									// Восстановливаем соединение
-									sessions.sessions[id].client_socket = socket;
+									// Закрываем гостевое соединрение
 									session.server_socket.destroy();
 									delete sessions.sessions[session._id];
 
-									// Отсылаем все утеренные пакеты
-									sessions.sessions[id].data.forEach(function(p){ socket.write(p) });
-									sessions.sessions[id].data = [];
-
-									sessions.sessions[id].cancel_destruction();
+									// Восстановливаем соединение
 									session = sessions.sessions[id];
+									session.client_socket = socket;
+
+									// Отсылаем все утеренные пакеты
+									session.data.forEach(function(p){ socket.write(p) });
+									session.data = [];
+
+									session.cancel_destruction();
 									can_send = false;
 									break;
 								}
 							}
 
 						session.user_id = result['usrId'];
+						sessions.update(session);
 					}
 				} catch (e) {
 					console.log('Error: ' + e);

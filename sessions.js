@@ -13,6 +13,10 @@ exports.Sessions = function(){
 		return self.sessions[session._id];
 	};
 
+	this.update = function(session){
+		self.sessions[session._id] = session;
+	}
+
 	// Сессия пользователя
 	function Session(){
 		this._id = uuid.v4() || 0;
