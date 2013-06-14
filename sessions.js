@@ -28,12 +28,12 @@ exports.Sessions = function(){
 		var current = this;
 
 		this.server_socket.on('data', function(data){
+			console.log(this.user_id + ' - ' + data.toString());
 			if (!current.client_socket.write(data)) current.data.push(data);
 		});
 
 		this.destroy = function(){
-			if (current.ping_interval !== null && current.destruction_timeout !== null)
-				return false;
+			if (current.ping_interval !== null) return false;
 
 			current.ping_interval = setInterval(function(){
 				current.server_socket.write('{"cmd":"*ping"}\0');
@@ -41,6 +41,8 @@ exports.Sessions = function(){
 
 			current.destruction_timeout = setTimeout(function(){
 				clearInterval(current.ping_interval);
+				current.ping_interval = null;
+
 				if (current.server_socket) current.server_socket.destroy();
 				delete self.sessions[current._id];
 			}, 1800000); // 30 минут
