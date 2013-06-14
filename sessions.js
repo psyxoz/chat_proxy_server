@@ -48,7 +48,7 @@ exports.Sessions = function(){
 
 				if (current.server_socket) current.server_socket.destroy();
 				delete self.sessions[current._id];
-			}, 1800000); // 30 минут
+			}, 300000); // 5 минут
 		};
 
 		this.cancel_destruction = function(){
