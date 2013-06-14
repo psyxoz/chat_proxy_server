@@ -32,7 +32,7 @@ var server = net.createServer(function(socket) {
 							for (var id in sessions.sessions) {
 								if (sessions.sessions.hasOwnProperty(id) && sessions.sessions[id].user_id == result['usrId']) {
 
-									// Закрываем гостевое соединрение
+									// Закрываем гостевое соединение
 									session.server_socket.destroy();
 									delete sessions.sessions[session._id];
 

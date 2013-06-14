@@ -15,7 +15,7 @@ exports.Sessions = function(){
 
 	this.update = function(session){
 		self.sessions[session._id] = session;
-	}
+	};
 
 	// Сессия пользователя
 	function Session(){
@@ -32,7 +32,6 @@ exports.Sessions = function(){
 		var current = this;
 
 		this.server_socket.on('data', function(data){
-			console.log(current.user_id + ' - ' + data.toString());
 			if (!current.client_socket.write(data)) current.data.push(data);
 		});
 
